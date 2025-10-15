@@ -110,12 +110,36 @@ namespace Tanks.Complete
             {
                 ControlIndex = m_PlayerNumber;
             }
-            
+
             var mobileControl = FindAnyObjectByType<MobileUIControl>();
-            
+
             // By default, ControlIndex 1 is matched to KeyboardLeft. But if there is a mobile UI control component in the scene
             // and it is active (so we either are on mobile or it was force activated to test by the user) then we instead 
             // match ControlIndex 1 to the virtual Gamepad on screen.
+            EvaluateControls(mobileControl);
+
+            // The axes names are based on player number.
+            m_MovementAxisName = "Vertical";
+            m_TurnAxisName = "Horizontal";
+
+            // Get the action input from the TankInputUser component which will have taken care of copying them and
+            // binding them to the right device and control scheme
+            m_MoveAction = m_InputUser.ActionAsset.FindAction(m_MovementAxisName);
+            m_TurnAction = m_InputUser.ActionAsset.FindAction(m_TurnAxisName);
+
+            // actions need to be enabled before they can react to input
+            m_MoveAction.Enable();
+            m_TurnAction.Enable();
+
+            // Store the original pitch of the audio source.
+            if (m_MovementAudio)
+            {
+                m_OriginalPitch = m_MovementAudio.pitch;
+            }
+        }
+
+        private void EvaluateControls(MobileUIControl mobileControl)
+        {
             if (mobileControl != null && ControlIndex == 1)
             {
                 m_InputUser.SetNewInputUser(InputUser.PerformPairingWithDevice(mobileControl.Device));
@@ -126,27 +150,7 @@ namespace Tanks.Complete
                 // otherwise if no mobile ui control is active, ControlIndex is KeyboardLeft scheme and ControlIndex 2 is KeyboardRight
                 m_InputUser.ActivateScheme(ControlIndex == 1 ? "KeyboardLeft" : "KeyboardRight");
             }
-
-            // The axes names are based on player number.
-            m_MovementAxisName = "Vertical";
-            m_TurnAxisName = "Horizontal";
-            
-            // Get the action input from the TankInputUser component which will have taken care of copying them and
-            // binding them to the right device and control scheme
-            m_MoveAction = m_InputUser.ActionAsset.FindAction(m_MovementAxisName);
-            m_TurnAction = m_InputUser.ActionAsset.FindAction(m_TurnAxisName);
-            
-            // actions need to be enabled before they can react to input
-            m_MoveAction.Enable();
-            m_TurnAction.Enable();
-            
-            // Store the original pitch of the audio source.
-            if(m_MovementAudio)
-            {
-                m_OriginalPitch = m_MovementAudio.pitch;
-            }
         }
-
 
         private void Update ()
         {
